@@ -1,5 +1,5 @@
 from django.db import models
-from django.contrib.auth.models import (AbstractBaseUser, BaseUserManager, PermissionsMixin,)
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.db.models.fields import BooleanField
 
 # Para crear un usuario usamos BaseUserManager porque es un modelo de usuario extendido/modificado (AbstractBaseUser)
@@ -44,6 +44,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     #Por default en el modelo User, el campo username es requerido, pero como nosotros no tenemos ese campo en nuestro modelo, configuramos que el username va a ser nuestro campo email, ya eso lo convierte en un campo requerido
     USERNAME_FIELD = "email"
 
+    #Esto define que estamos usando UserManager para definir que tipo de usuario estamos creando
     objects = UserManager()
 
     def __str__(self):
@@ -51,3 +52,5 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def tokens(self):
         return ""
+
+#Tenemos que settear en settings.py AUTH_USER_MODEL = "<nombreapp>.<nombredemodelousuario>"  para que reconozca qué tipo de usuario va a usar.

@@ -31,6 +31,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+#Le indicamos a Django de donde va a tomar el modelo de usuario
 AUTH_USER_MODEL = "users.User"
 
 # Application definition

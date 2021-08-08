@@ -34,6 +34,9 @@ ALLOWED_HOSTS = []
 #Le indicamos a Django de donde va a tomar el modelo de usuario
 AUTH_USER_MODEL = "users.User"
 
+
+CORS_ORIGIN_ALLOW_ALL = True
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -43,18 +46,19 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    # Third party apps
-    "rest_framework",
-    "rest_email_auth",
-    "rest_framework.authtoken",
-    "rest_auth",
     'django.contrib.sites',
-    'allauth',
-    'allauth.account',
-    'rest_auth.registration',
+    
+    # Third apps
+    "rest_framework",
+    "rest_framework.authtoken",
+    #"rest_auth",
+    
+    # 'allauth',
+    # 'allauth.account',
+    # 'rest_auth.registration',
+    
     # Project apps
     "users",
-    # "achievements",
     "profile",
 ]
 
@@ -73,30 +77,30 @@ MIDDLEWARE = [
 ]
 
 REST_FRAMEWORK = {
-    "DEFAULT_PERMISSION_CLASSES": [
-        "rest_framework.permissions.IsAuthenticated",
-    ],
+    # "DEFAULT_PERMISSION_CLASSES": [
+    #     "rest_framework.permissions.IsAuthenticated",
+    # ],
     "DEFAULT_AUTHENTICATION_CLASSES": [
-        #"rest_framework.authentication.SessionAuthentication",
+        "rest_framework.authentication.SessionAuthentication",
         "rest_framework.authentication.TokenAuthentication",
     ],
 }
 
+ACCOUNT_USER_MODEL_USERNAME_FIELD = 'email'
+ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_AUTHENTICATION_METHOD = 'email'
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_LOGOUT_ON_GET = True 
+
+
 AUTHENTICATION_BACKENDS = [
-    "rest_email_auth.authentication.VerifiedEmailBackend",
     "django.contrib.auth.backends.ModelBackend",
 ]
 
 REST_AUTH_SERIALIZERS = {
     "LOGIN_SERIALIZER": "users.serializers.LoginSerializer",
-    "PASSWORD_CHANGE_SERIALIZER": "users.serializers.PasswordChangeSerializer",
-    "USER_DETAILS_SERIALIZER": "users.serializers.UserRegistrationSerializer",
-}
-
-
-REST_EMAIL_AUTH = {
-    "EMAIL_VERIFICATION_URL": "http://127.0.0.1:8000/account/verify-email/{key}",
-    "PASSWORD_RESET_URL": "http://127.0.0.1:8000/account/reset-password/{key}",
+    #"PASSWORD_CHANGE_SERIALIZER": "users.serializers.PasswordChangeSerializer",
+    #"USER_DETAILS_SERIALIZER": "users.serializers.UserRegistrationSerializer",
 }
 
 ROOT_URLCONF = "core.urls"
@@ -138,7 +142,7 @@ DATABASES = {
         "USER": env("DATABASE_USER"),
         "PASSWORD": env("DATABASE_PASS"),
         "HOST": env("DATABASE_HOST"),
-        "POST": "5432",
+        "PORT": "5432",
     }
 }
 
@@ -186,8 +190,17 @@ STATIC_URL = "/static/"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+# Swagger config
 
-# ACCOUNT_USER_MODEL_USERNAME_FIELD = None
-# ACCOUNT_EMAIL_REQUIRED = True
-# ACCOUNT_USERNAME_REQUIRED = False
-# ACCOUNT_AUTHENTICATION_METHOD = "email"
+# SWAGGER_SETTINGS = {
+#     'SECURITY_DEFINITIONS': {
+#         'Basic': {
+#                 'type': 'basic'
+#         },
+#         'Bearer': {
+#                 'type': 'apiKey',
+#                 'name': 'Authorization',
+#                 'in': 'header'
+#         }
+#     }
+# }

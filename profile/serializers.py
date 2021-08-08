@@ -1,6 +1,6 @@
 from rest_framework import serializers
 # from users.models import User
-# from users.serializers import UserRegistrationSerializer
+from users.serializers import UserSerializer
 from profile.models import Achievement
 from profile.models import Developer
 
@@ -24,7 +24,7 @@ class AchievementsSerializer(serializers.ModelSerializer):
 class DeveloperSerializer(serializers.ModelSerializer):
 
     #Campo que hace referencia a lo que devuelve el str del modelo
-    email = serializers.StringRelatedField()
+    email = UserSerializer(many=False, read_only=True)
     achievements = AchievementsSerializer(many=True, read_only=True)
 
     class Meta:

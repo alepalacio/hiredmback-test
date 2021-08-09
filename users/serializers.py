@@ -1,15 +1,17 @@
 from django.conf import settings
 from django.contrib.auth import authenticate, get_user, get_user_model
 from django.utils.translation import ugettext_lazy as _
+
 from rest_framework import exceptions, serializers
+
 from users.models import User
+from users.forms import SetPasswordForm
+
+#from rest_auth.serializers import PasswordChangeSerializer
 #from rest_auth import serializers
 
-class UserTokenSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ('id','email',)
 
+# Serializador de usuarios
 class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -24,10 +26,15 @@ class UserSerializer(serializers.ModelSerializer):
         password = user.password
         user.set_password(password)
         user.save()
+        # # url = config("FRONT_URL")
+        # url = "https://limitless-brushlands-61741.herokuapp.com"
+        # # user.activation_email(url, user, password)
+        # user.activation_email(url, user)
+        
         return user
     
     def update(self, instance, validated_data):
-        print(instance)
+        #print(instance)
         instance.email = validated_data.get("email", instance.email)
         instance.is_verified = validated_data.get("is_verified", instance.is_verified)
         instance.is_active = validated_data.get("is_active", instance.is_active)
@@ -35,11 +42,19 @@ class UserSerializer(serializers.ModelSerializer):
         password = instance.password
         instance.set_password(password)
         instance.save()
+        
         return instance
     
+    # Obtenemos el modelo de usuario
     UserModel = get_user_model()
     
-# Personalizando el serializador de login, ya que por default trabaja con username
+# Serializador personalizado oara el generador de Token
+class UserTokenSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('id','email',)
+    
+# Personalizando el serializador de login, ya que por default trabaja con el campo "username"
 class LoginSerializer(serializers.Serializer):
     
     # Quitamos el campo 'username' para trabajar solo con email y password.
@@ -102,8 +117,54 @@ class LoginSerializer(serializers.Serializer):
         attrs['user'] = user
         return attrs
         
-        
-        
+# Serializador para cambio de password. Importado desde la documentación de rest_auth.        
+class PasswordChangeSerializer(serializers.Serializer):
+    old_password = serializers.CharField(max_length=128)
+    new_password1 = serializers.CharField(max_length=128)
+    new_password2 = serializers.CharField(max_length=128)
+
+    set_password_form_class = SetPasswordForm
+
+    def __init__(self, *args, **kwargs):
+        self.old_password_field_enabled = getattr(
+            settings, 'OLD_PASSWORD_FIELD_ENABLED', True
+        )
+        self.logout_on_password_change = getattr(
+            settings, 'LOGOUT_ON_PASSWORD_CHANGE', False
+        )
+        super(PasswordChangeSerializer, self).__init__(*args, **kwargs)
+
+        if not self.old_password_field_enabled:
+            self.fields.pop('old_password')
+
+        self.request = self.context.get('request')
+        self.user = getattr(self.request, 'user', None)
+
+    def validate_old_password(self, value):
+        invalid_password_conditions = (
+            self.old_password_field_enabled,
+            self.user,
+            not self.user.check_password(value)
+        )
+
+        if all(invalid_password_conditions):
+            raise serializers.ValidationError('Invalid password')
+        return value
+
+    def validate(self, attrs):
+        self.set_password_form = self.set_password_form_class(
+            user=self.user, data=attrs
+        )
+
+        if not self.set_password_form.is_valid():
+            raise serializers.ValidationError(self.set_password_form.errors)
+        return attrs
+
+    def save(self):
+        self.set_password_form.save()
+        if not self.logout_on_password_change:
+            from django.contrib.auth import update_session_auth_hash
+            update_session_auth_hash(self.request, self.user)
 
 
 

@@ -8,15 +8,33 @@ from rest_framework.compat import coreapi, coreschema
 from rest_framework.schemas import coreapi as coreapi_schema
 from rest_framework.schemas import ManualSchema
 from rest_framework.response import Response
-from rest_framework import permissions
+from rest_framework.permissions import AllowAny
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.serializers import AuthTokenSerializer
+from rest_framework.decorators import api_view, permission_classes
 
 from users.models import User
 from users.serializers import UserSerializer, LoginSerializer, UserTokenSerializer
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def register(request):
+    """
+    Registers user to the server. Input should be in the format:
+    {
+        "email": "email@emails.com",
+        "password": "1973zpqm",
+    }
+    """
+    serializer = UserSerializer(data=request.data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response({'message':'User registered successfully'}, status=status.HTTP_201_CREATED)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
 
 class UserAPIView(APIView):
     
@@ -92,7 +110,7 @@ class ObtainAuthToken(APIView):
 
 obtain_auth_token = ObtainAuthToken.as_view()
     
-    
+# Login de usuario con el modelo herencia de ObtainAuthToken modificado.
 class Login(ObtainAuthToken):
     
     def post(self, request, *args, **kwargs):
@@ -138,6 +156,7 @@ class Login(ObtainAuthToken):
         else: 
             return Response({'error': 'Wrong email or password. Try again'}, status=status.HTTP_400_BAD_REQUEST)
         
+# Logout de usuario
 class Logout(APIView):
     
     def get(self, request, *args, **kwargs):
@@ -151,8 +170,9 @@ class Logout(APIView):
                     for session in all_sessions:
                         session_data = session.get_decoded()
                         if user.id == int(session_data.get('_auth_user_id')):
+                            # Si coincide el id del usuario con información de sesión del usario, eliminamos la sesión.
                             session.delete()
-                            
+                # También eliminamos el token.            
                 token.delete()
                 
                 session_message = 'User sessions deleted'

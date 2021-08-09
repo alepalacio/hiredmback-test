@@ -1,12 +1,20 @@
 from django.urls import path
-from users.views import UserAPIView, UserDetailAPIView, Login, Logout
+from users.views import UserAPIView, UserDetailAPIView, Login, Logout, register
 
 
 urlpatterns = [
-    path('users/', UserAPIView.as_view(), name="users"),
-    path('users/<int:pk>/', UserDetailAPIView.as_view(), name="users-detail"),
+    # User list
+    path("", UserAPIView.as_view(), name="users"),
+    
+    # User detail 
+    path("<int:pk>", UserDetailAPIView.as_view(), name="users-detail"),
+    
+    # Registro de usuario
+    path('register/', register, name="register"),
+    
+    # Login de usuario
     path('login/', Login.as_view(), name="login"),
-    path('logout/', Logout.as_view(), name="logout")
-    #path("", views.AccountUrlList.as_view(), name="api-overview"),
-    # path("log-in", views.APILoginView.as_view(), name="api-login"),
+    
+    # Logout de usuario
+    path('logout/', Logout.as_view(), name="logout"),
 ]
